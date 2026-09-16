@@ -19,7 +19,7 @@ name: AI Backport Bot
 # branch, so commenting /port on a PR won't trigger anything until merged.
 # --------------------------------------------------------------------------------
 #
-# Requires an OPENROUTER_API_KEY repository secret for the LLM calls.
+# Requires an OPENROUTER_API_KEY repo secret for the LLM calls.
 # Without it bpilot falls back to mechanical cherry-pick only.
 
 on:
@@ -159,13 +159,51 @@ jobs:
           COMMIT_SUBJECT=$(git log -1 --format=%s "$COMMIT_HASH" 2>/dev/null || echo "")
           echo "commit_subject=$COMMIT_SUBJECT" >> $GITHUB_OUTPUT
 
+      - name: Check for existing backport
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_COMMIT: ${{ steps.inputs.outputs.merge_commit }}
+          TARGET_BRANCH: ${{ steps.inputs.outputs.target_branch }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          # Compute the deterministic branch name bpilot will use:
+          # backport/<short-sha (max 12)>-to-<target with / as ->
+          SHORT=$(git rev-parse --short "$MERGE_COMMIT")
+          SHORT="${SHORT:0:12}"
+          SAFE_TARGET="${TARGET_BRANCH//\//-}"
+          BRANCH="backport/${SHORT}-to-${SAFE_TARGET}"
+          echo "backport_branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "existing_pr=" >> $GITHUB_OUTPUT
+
+          # 1. Open PR already exists for this branch? -> idempotent success.
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json url -jq '.[0].url')
+          if [ -n "$EXISTING" ]; then
+            echo "existing_pr=$EXISTING" >> $GITHUB_OUTPUT
+            echo "Backport PR already exists: $EXISTING"
+            if [ "$EVENT_NAME" == "issue_comment" ]; then
+              gh issue comment "$ISSUE_NUMBER" \
+                --body "ℹ️ **Backport already exists:** $EXISTING"
+            fi
+            exit 0
+          fi
+
+          # 2. Remote branch exists but no open PR -> ambiguous; fail with guidance.
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "::error::Remote branch '$BRANCH' already exists but has no open PR. A previous run may have failed before PR creation, or the PR was closed. Delete the branch (git push origin --delete $BRANCH) and re-run, or open a PR from it manually."
+            exit 1
+          fi
+
       # TEMPORARY: installing from a locally-built .snap file checked into the
       # repo root.
       #TODO Replace with `sudo snap install bpilot --classic` once published to store
       - name: Install bpilot
+        if: steps.check.outputs.existing_pr == ''
         run: sudo snap install ./bpilot_0.1.0_amd64.snap --classic --dangerous
 
       - name: Run bpilot
+        if: steps.check.outputs.existing_pr == ''
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -173,6 +211,7 @@ jobs:
           bpilot port ${{ steps.inputs.outputs.merge_commit }} ${{ steps.inputs.outputs.target_branch }}
 
       - name: Push branch and Create Draft PR
+        if: steps.check.outputs.existing_pr == ''
         id: create_pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -223,7 +262,7 @@ jobs:
           echo "new_pr_url=$NEW_PR_URL" >> $GITHUB_OUTPUT
 
       - name: Comment backport report on new PR
-        if: success()
+        if: success() && steps.check.outputs.existing_pr == ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEW_PR_URL: ${{ steps.create_pr.outputs.new_pr_url }}
@@ -246,7 +285,7 @@ jobs:
           )"
 
       - name: Comment on PR (Success)
-        if: success() && github.event_name == 'issue_comment'
+        if: success() && github.event_name == 'issue_comment' && steps.check.outputs.existing_pr == ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
