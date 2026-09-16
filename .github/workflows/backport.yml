@@ -131,7 +131,7 @@ jobs:
             # If it looks like a PR reference (#123 or 123), resolve its merge commit.
             PR_NUM="${COMMIT_HASH#\#}"
             if [[ "$PR_NUM" =~ ^[0-9]+$ ]]; then
-              MERGE_COMMIT=$(gh pr view "$PR_NUM" --json mergeCommit -jq '.mergeCommit.oid')
+              MERGE_COMMIT=$(gh pr view "$PR_NUM" --json mergeCommit --jq '.mergeCommit.oid')
               if [ -z "$MERGE_COMMIT" ] || [ "$MERGE_COMMIT" == "null" ]; then
                 echo "::error::Could not resolve merge commit for PR $PR_NUM. Ensure the PR is merged."
                 exit 1
@@ -144,7 +144,7 @@ jobs:
               echo "::error::No commit given, and no source PR to resolve. Provide commit_or_pr for dispatch."
               exit 1
             fi
-            MERGE_COMMIT=$(gh pr view "$PR_URL" --json mergeCommit -jq '.mergeCommit.oid')
+            MERGE_COMMIT=$(gh pr view "$PR_URL" --json mergeCommit --jq '.mergeCommit.oid')
             if [ -z "$MERGE_COMMIT" ] || [ "$MERGE_COMMIT" == "null" ]; then
               echo "::error::Could not resolve merge commit. Ensure the PR is merged."
               exit 1
@@ -178,7 +178,7 @@ jobs:
           echo "existing_pr=" >> $GITHUB_OUTPUT
 
           # 1. Open PR already exists for this branch? -> idempotent success.
-          EXISTING=$(gh pr list --head "$BRANCH" --state open --json url -jq '.[0].url')
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url')
           if [ -n "$EXISTING" ]; then
             echo "existing_pr=$EXISTING" >> $GITHUB_OUTPUT
             echo "Backport PR already exists: $EXISTING"
@@ -354,7 +354,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.issue.number }}
         run: |
-          BODY=$(gh pr view "$PR_NUMBER" --json body -jq '.body')
+          BODY=$(gh pr view "$PR_NUMBER" --json body --jq '.body')
           SESSION=$(python3 -c "
           import re, sys
           m = re.search(r'<!-- bpilot:session (.*?) -->', '''$BODY''', re.DOTALL)
@@ -385,7 +385,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.issue.number }}
         run: |
-          BODY=$(gh pr view "$PR_NUMBER" --json body -jq '.body')
+          BODY=$(gh pr view "$PR_NUMBER" --json body --jq '.body')
           python3 -c "
           import re
           m = re.search(r'<!-- bpilot:session (.*?) -->', '''$BODY''', re.DOTALL)
