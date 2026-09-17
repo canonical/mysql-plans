@@ -29,9 +29,9 @@ logger = logging.getLogger(__name__)
 SCENARIOS = [
     Scenario(
         name="default",
-        active_apps=["mysql", "s3-integrator"],
+        active_apps=["mysql"],
         unknown_apps=["mysql-router"],
-        offers={"mysql-database-offer": "mysql-router"},
+        blocked_apps=["s3-integrator"],
     ),
     Scenario(
         name="optional_router",
