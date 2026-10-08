@@ -75,6 +75,8 @@ def get_common_vars(juju: jubilant.Juju) -> Dict[str, Any]:
         common["s3_integrator"] = {"config": s3_config}
     if storage_size := os.getenv("TF_MYSQL_STORAGE_SIZE"):
         common["mysql_server"] = {"storage_size": storage_size}
+    if channel := os.getenv("TF_MYSQL_CHANNEL"):
+        common.setdefault("mysql_server", {})["channel"] = channel
     return common
 
 

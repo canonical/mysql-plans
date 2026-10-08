@@ -11,6 +11,15 @@ on:
     paths-ignore:
       - '**.md'
       - '.github/renovate.json5'
+  workflow_dispatch:
+    inputs:
+      mysql-channel:
+        description: |
+          Charmhub channel to deploy MySQL Server from (e.g. '8.0/beta')
+
+          Defaults to the channel set in the terraform plan
+        type: string
+        default: ''
 
 jobs:
   lint:
@@ -52,4 +61,5 @@ jobs:
     uses: ./.github/workflows/integration_test.yaml
     with:
       path-to-charm-directory: ${{ matrix.path }}
+      mysql-channel: ${{ inputs.mysql-channel }}
     secrets: inherit
