@@ -88,6 +88,7 @@ backends:
     # Manually pass specific environment variables
     environment:
       CI: '$(HOST: echo $CI)'
+      TF_MYSQL_CHANNEL: '$(HOST: echo $TF_MYSQL_CHANNEL)'
     systems:
       - ubuntu-22.04:
           username: runner
