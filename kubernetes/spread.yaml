@@ -94,6 +94,7 @@ backends:
       CA_CERT: '$(HOST: echo $CA_CERT)'
       TF_BINARY: '$(HOST: echo $TF_BINARY)'
       TF_MYSQL_STORAGE_SIZE: '$(HOST: echo $TF_MYSQL_STORAGE_SIZE)'
+      TF_MYSQL_CHANNEL: '$(HOST: echo $TF_MYSQL_CHANNEL)'
     systems:
       - ubuntu-22.04:
           username: runner
