@@ -1,0 +1,11 @@
+summary: test_terraform_scale_out.py
+environment:
+  TEST_MODULE: test_terraform_scale_out.py
+execute: |
+  # TODO: Uncomment when opentelemetry-collector gets built for Ubuntu 26.04
+  # tox run -e integration -- "tests/integration/$TEST_MODULE" --alluredir="$SPREAD_TASK/allure-results"
+  exit 0
+artifacts:
+  - allure-results
+backends:
+  - -lxd-vm  # Requires CI secrets
