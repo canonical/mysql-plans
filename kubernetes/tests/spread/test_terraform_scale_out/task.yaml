@@ -1,0 +1,9 @@
+summary: test_terraform_scale_out.py
+environment:
+  TEST_MODULE: test_terraform_scale_out.py
+execute: |
+  tox run -e integration -- "tests/integration/$TEST_MODULE" --alluredir="$SPREAD_TASK/allure-results"
+artifacts:
+  - allure-results
+backends:
+  - -lxd-vm  # Requires CI secrets
