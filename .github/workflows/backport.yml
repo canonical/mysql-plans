@@ -195,12 +195,10 @@ jobs:
             exit 1
           fi
 
-      # TEMPORARY: installing from a locally-built .snap file checked into the
-      # repo root.
-      #TODO Replace with `sudo snap install bpilot --classic` once published to store
       - name: Install bpilot
         if: steps.check.outputs.existing_pr == ''
-        run: sudo snap install ./bpilot_0.1.0_amd64.snap --classic --dangerous
+        # bpilot is published on PyPI. pipx is preinstalled on ubuntu-latest
+        run: pipx install bpilot
 
       - name: Run bpilot
         if: steps.check.outputs.existing_pr == ''
@@ -409,11 +407,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # TEMPORARY: installing from a locally-built .snap file checked into the
-      # repo root. Replace with `sudo snap install bpilot --classic` once the
-      # snap is published to the Snap Store, and delete the .snap from the repo.
       - name: Install bpilot
-        run: sudo snap install ./bpilot_0.1.0_amd64.snap --classic --dangerous
+        run: pipx install bpilot
 
       - name: Run bpilot finalize
         env:
