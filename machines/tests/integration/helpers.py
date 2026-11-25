@@ -1,4 +1,4 @@
-# Copyright 2024 Canonical Ltd.
+# f6cb080 Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
 import base64
@@ -72,16 +72,16 @@ def get_common_vars(juju: jubilant.Juju) -> Dict[str, Any]:
         "s3_integrator_credentials": get_s3_credentials(),
     }
     if s3_config := get_s3_config():
-        common["s3_integrator"] = {"config": s3_config}
+        common.setdefault("s3_integrator", {})["config"] = s3_config
     if storage_size := os.getenv("TF_MYSQL_STORAGE_SIZE"):
-        common["mysql_server"] = {
-            "storage_sizes": {
-                "archive": storage_size,
-                "data": storage_size,
-                "logs": storage_size,
-                "temp": storage_size,
-            },
+        common.setdefault("mysql_server", {})["storage_sizes"] = {
+            "archive": storage_size,
+            "data": storage_size,
+            "logs": storage_size,
+            "temp": storage_size,
         }
+    if channel := os.getenv("TF_MYSQL_CHANNEL"):
+        common.setdefault("mysql_server", {})["channel"] = channel
     return common
 
 
