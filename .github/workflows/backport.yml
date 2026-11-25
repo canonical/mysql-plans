@@ -12,11 +12,10 @@ name: AI Backport Bot
 #   /port <target-branch>                 # e.g. /port 8.0/edge
 #   /port <commit-hash> <target-branch>   # e.g. /port a1b2c3d4 8.0/edge
 #
-# --- TEMPORARY for pre-merge testing (#TODO remove before merging to default branch) ---
-# The workflow_dispatch trigger lets you run this workflow manually from a
+# --- TEMPORARY for testing (#TODO remove once PR comment flow verified) ---
+# The workflow_dispatch trigger lets us run this workflow manually from a
 # branch, with explicit inputs. Dispatch runs skip the PR-comment steps.
-# This is needed because issue_comment workflows only run from the default
-# branch, so commenting /port on a PR won't trigger anything until merged.
+# This is needed in case /port on a PR won't trigger .
 # --------------------------------------------------------------------------------
 #
 # Requires an OPENROUTER_API_KEY repo secret for the LLM calls.
